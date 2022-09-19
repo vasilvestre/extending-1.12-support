@@ -51,32 +51,23 @@ class RegisterShopUserHandler implements MessageHandlerInterface
 
         $customer->setFirstName($command->firstName);
         $customer->setLastName($command->lastName);
-        $customer->setIsPro($command->isPro);
-        if ($command->isPro) {
-            $customer->setBrand($command->brand);
-            if ($command->vatNumber !== null) {
-                if ($this->vatValidator->validateVatNumberFormat($command->vatNumber) === false) {
-                    throw new InvalidVatException(sprintf('VAT number format "%s" is invalid.', $command->vatNumber));
-                }
-                if ($this->vatValidator->validateVatNumber($command->vatNumber) === false) {
-                    throw new InvalidVatException(sprintf('VAT number "%s" is invalid.', $command->vatNumber));
-                }
-                $customer->setVatNumber($command->vatNumber);
-            } else {
-                throw new InvalidVatException('VAT number is empty.');
+        if ($command->vatNumber !== null) {
+            if ($this->vatValidator->validateVatNumberFormat($command->vatNumber) === false) {
+                throw new InvalidVatException(sprintf('VAT number format "%s" is invalid.', $command->vatNumber));
             }
+            if ($this->vatValidator->validateVatNumber($command->vatNumber) === false) {
+                throw new InvalidVatException(sprintf('VAT number "%s" is invalid.', $command->vatNumber));
+            }
+            $customer->setVatNumber($command->vatNumber);
+        } else {
+            throw new InvalidVatException('VAT number is empty.');
         }
         $customer->setUser($user);
-        $customer->setAcceptedMangopayCGU($command->hasAcceptedMangopayCGU);
-        $customer->setSubscribedToNewsletter($command->subscribedToNewsletter);
 
         /** @var ChannelInterface $channel */
         $channel = $this->channelRepository->findOneByCode($command->channelCode);
 
         $this->shopUserManager->persist($user);
-
-        // custom logic goes here, send email, text..
-        //
         
         $this->commandBus->dispatch(new SendAccountRegistrationEmail(
             $command->email,
