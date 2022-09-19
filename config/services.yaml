@@ -33,3 +33,16 @@ services:
     App\Controller\:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
+
+    App\Serializer\ProductNormalizer:
+        decorates: 'Sylius\Bundle\ApiBundle\Serializer\ProductNormalizer'
+        arguments:
+            - '@sylius.product_variant_resolver.default'
+
+    App\CommandHandler\Account\RegisterShopUserHandler:
+        decorates: 'Sylius\Bundle\ApiBundle\CommandHandler\Account\RegisterShopUserHandler'
+        bind:
+            $tokenGenerator: '@sylius.shop_user.token_generator.email_verification'
+
+    App\DataProvider\CustomerItemDataProvider:
+        decorates: 'Sylius\Bundle\ApiBundle\DataProvider\CustomerItemDataProvider'
