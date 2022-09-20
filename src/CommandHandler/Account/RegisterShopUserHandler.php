@@ -12,7 +12,7 @@ use Doctrine\Persistence\ObjectManager;
 use Ibericode\Vat\Validator;
 use Sylius\Bundle\ApiBundle\Command\Account\SendAccountRegistrationEmail;
 use Sylius\Bundle\ApiBundle\Command\Account\SendAccountVerificationEmail;
-use Sylius\Bundle\ApiBundle\Provider\CustomerProviderInterface;
+use Sylius\Bundle\CoreBundle\Resolver\CustomerResolverInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -27,7 +27,7 @@ class RegisterShopUserHandler implements MessageHandlerInterface
     public function __construct(
         private FactoryInterface $shopUserFactory,
         private ObjectManager $shopUserManager,
-        private CustomerProviderInterface $customerProvider,
+        private CustomerResolverInterface $customerProvider,
         private ChannelRepositoryInterface $channelRepository,
         private GeneratorInterface $tokenGenerator,
         private MessageBusInterface $commandBus,
