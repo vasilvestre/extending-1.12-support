@@ -1,0 +1,12 @@
+App\Entity\Product\Product:
+    collectionOperations:
+        shop_post:
+            security: in_granted('ROLE_USER')
+            method: POST
+            messenger: input
+            input: App\Command\Product\NewProduct
+            path: /shop/products/
+            openapi_context:
+                summary: Register new product for a customer
+            denormalization_context:
+                groups: shop:product:create

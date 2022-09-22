@@ -21,9 +21,6 @@ if [ "$1" = 'php-fpm' ] || [ "$1" = 'bin/console' ]; then
 	    (>&2 echo "Waiting for MySQL to be ready...")
 		sleep 1
 	done
-
-    bin/console doctrine:migrations:migrate --no-interaction
-    bin/console sylius:fixtures:load --no-interaction
 fi
 
 exec docker-php-entrypoint "$@"

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\CommandHandler\Account;
 
+use ApiPlatform\Core\Exception\InvalidArgumentException;
 use App\Command\Account\RegisterShopUser;
 use App\Entity\Customer\Customer;
-use App\Exception\InvalidVatException;
-use App\Mangopay\Helper\UserHelper;
 use Doctrine\Persistence\ObjectManager;
 use Ibericode\Vat\Validator;
+use Ibericode\Vat\Exception;
 use Sylius\Bundle\ApiBundle\Command\Account\SendAccountRegistrationEmail;
 use Sylius\Bundle\ApiBundle\Command\Account\SendAccountVerificationEmail;
 use Sylius\Bundle\CoreBundle\Resolver\CustomerResolverInterface;
@@ -31,7 +31,6 @@ class RegisterShopUserHandler implements MessageHandlerInterface
         private ChannelRepositoryInterface $channelRepository,
         private GeneratorInterface $tokenGenerator,
         private MessageBusInterface $commandBus,
-        private UserHelper $userLayout,
         private Validator $vatValidator,
     ) {
     }
@@ -43,7 +42,7 @@ class RegisterShopUserHandler implements MessageHandlerInterface
         $user->setPlainPassword($command->password);
 
         /** @var Customer $customer */
-        $customer = $this->customerProvider->provide($command->email);
+        $customer = $this->customerProvider->resolve($command->email);
 
         if ($customer->getUser() !== null) {
             throw new \DomainException(sprintf('User with email "%s" is already registered.', $command->email));
@@ -53,14 +52,14 @@ class RegisterShopUserHandler implements MessageHandlerInterface
         $customer->setLastName($command->lastName);
         if ($command->vatNumber !== null) {
             if ($this->vatValidator->validateVatNumberFormat($command->vatNumber) === false) {
-                throw new InvalidVatException(sprintf('VAT number format "%s" is invalid.', $command->vatNumber));
+                throw new Exception(sprintf('VAT number format "%s" is invalid.', $command->vatNumber));
             }
             if ($this->vatValidator->validateVatNumber($command->vatNumber) === false) {
-                throw new InvalidVatException(sprintf('VAT number "%s" is invalid.', $command->vatNumber));
+                throw new Exception(sprintf('VAT number "%s" is invalid.', $command->vatNumber));
             }
             $customer->setVatNumber($command->vatNumber);
         } else {
-            throw new InvalidVatException('VAT number is empty.');
+            throw new InvalidArgumentException('VAT number is empty.');
         }
         $customer->setUser($user);
 
@@ -68,7 +67,7 @@ class RegisterShopUserHandler implements MessageHandlerInterface
         $channel = $this->channelRepository->findOneByCode($command->channelCode);
 
         $this->shopUserManager->persist($user);
-        
+
         $this->commandBus->dispatch(new SendAccountRegistrationEmail(
             $command->email,
             $command->localeCode,

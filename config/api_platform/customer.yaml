@@ -1,0 +1,4 @@
+App\Entity\Customer\Customer:
+    collectionOperations:
+        shop_post:
+            input: App\Command\Account\RegisterShopUser
